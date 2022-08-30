@@ -79,6 +79,8 @@ public class LineageHTTPHandler extends AbstractHttpHandler {
     this.authenticationContext = authenticationContext;
   }
 
+
+
   /**
    * Get the lineage information about a dataset. This method does not give any information on field level lineage.
    *
@@ -91,7 +93,7 @@ public class LineageHTTPHandler extends AbstractHttpHandler {
    * @param rollup indicates whether to aggregate programs, currently supports rolling up programs into workflows
    */
   @GET
-  @Path("/namespaces/{namespace-id}/datasets/{dataset-id}/lineage")
+  @Path("/namespaces/{namespace-id}/apps/program/{dataset-id}/lineage")
   public void datasetLineage(HttpRequest request, HttpResponder responder,
                              @PathParam("namespace-id") String namespaceId,
                              @PathParam("dataset-id") String datasetId,

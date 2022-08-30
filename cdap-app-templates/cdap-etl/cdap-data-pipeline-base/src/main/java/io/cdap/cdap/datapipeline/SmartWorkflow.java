@@ -573,6 +573,11 @@ public class SmartWorkflow extends AbstractWorkflow {
     for (NodeValue nodeValue : allNodeValues) {
       Map<String, List<FieldOperation>> stageOperations
         = GSON.fromJson(nodeValue.getValue().toString(), STAGE_OPERATIONS_MAP);
+      // have logic to get fqn to stage
+      // loop the operations, add fqn to stage to endpoint property
+      for (List<FieldOperation> list : stageOperations.values) {
+        // modify and add properties for fqn
+      }
       for (Map.Entry<String, List<FieldOperation>> entry : stageOperations.entrySet()) {
         // allStageOperations only contains the stages from the stageSpecs, which does not include the connector stage,
         // but the stageOperations might contain connector stage if the pipeline has multiple phases, so this check

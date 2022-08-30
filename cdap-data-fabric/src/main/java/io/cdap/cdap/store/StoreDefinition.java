@@ -909,8 +909,10 @@ public final class StoreDefinition {
                     Fields.stringType(ENDPOINT_NAME_FIELD),
                     Fields.longType(START_TIME_FIELD),
                     Fields.longType(CHECKSUM_FIELD),
-                    Fields.stringType(PROGRAM_RUN_FIELD))
+                    Fields.stringType(PROGRAM_RUN_FIELD),
+                    Fields.stringType(PROPERTIES))
         .withPrimaryKeys(DIRECTION_FIELD, ENDPOINT_NAMESPACE_FIELD, ENDPOINT_NAME_FIELD, START_TIME_FIELD)
+        .withIndexes(START_TIME_FIELD)
         .build();
     public static final StructuredTableSpecification OPERATIONS_SPEC =
       new StructuredTableSpecification.Builder()

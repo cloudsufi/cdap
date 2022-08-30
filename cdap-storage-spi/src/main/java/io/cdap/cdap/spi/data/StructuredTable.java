@@ -108,6 +108,7 @@ public interface StructuredTable extends Closeable {
   /**
    * Read a set of rows from the table matching the key range.
    * The rows returned will be sorted on the primary key order.
+   * Remove restriction - Only operates on prefixes of primary keys
    *
    * @param keyRange key range for the scan
    * @param limit maximum number of rows to return
