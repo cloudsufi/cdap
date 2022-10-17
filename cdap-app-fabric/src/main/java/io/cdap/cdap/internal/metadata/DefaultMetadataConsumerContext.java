@@ -19,6 +19,8 @@ package io.cdap.cdap.internal.metadata;
 import io.cdap.cdap.common.conf.CConfiguration;
 import io.cdap.cdap.common.conf.Constants;
 import io.cdap.cdap.spi.metadata.MetadataConsumerContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Map;
@@ -29,6 +31,7 @@ import java.util.Map;
 public class DefaultMetadataConsumerContext implements MetadataConsumerContext {
 
   private final Map<String, String> properties;
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultMetadataConsumerContext.class);
 
   /**
    * @param cConf An instance of an injected ${@link CConfiguration}.
@@ -36,11 +39,14 @@ public class DefaultMetadataConsumerContext implements MetadataConsumerContext {
    */
   DefaultMetadataConsumerContext(CConfiguration cConf, String metadataConsumerName) {
     String prefix = String.format("%s.%s.", Constants.MetadataConsumer.METADATA_CONSUMER_PREFIX, metadataConsumerName);
+    LOG.info("======== prefix is {}", prefix);
     this.properties = Collections.unmodifiableMap(cConf.getPropsWithPrefix(prefix));
+    LOG.info("======== props in const is {}", this.properties);
   }
 
   @Override
   public Map<String, String> getProperties() {
+    LOG.info("======== retreiving props {}", this.properties);
     return this.properties;
   }
 }

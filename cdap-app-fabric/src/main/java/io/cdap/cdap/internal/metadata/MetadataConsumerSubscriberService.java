@@ -259,6 +259,7 @@ public class MetadataConsumerSubscriberService extends AbstractMessagingSubscrib
             new DefaultMetadataConsumerContext(cConf, consumer.getName());
           // if there is any error from the implementation, log and continue here
           // as we are already retrying at the service level
+          LOG.info("======== props in service - {}", metadataConsumerContext.getProperties());
           consumer.consumeLineage(metadataConsumerContext, run, info);
         } catch (Throwable e) {
           LOG.error("Error calling the metadata consumer {}: {}", consumer.getName(), e.getMessage());
