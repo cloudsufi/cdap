@@ -88,4 +88,13 @@ public class ProgramDescriptor {
   public ApplicationSpecification getApplicationSpecification() {
     return appSpec;
   }
+
+  @Override
+  public String toString() {
+    return "ProgramDescriptor{" +
+      "programId=" + programId +
+      ", appSpec=" + appSpec +
+      ", artifactId=" + artifactId +
+      '}';
+  }
 }

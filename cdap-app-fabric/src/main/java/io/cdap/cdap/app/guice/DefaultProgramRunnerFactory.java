@@ -82,6 +82,7 @@ public final class DefaultProgramRunnerFactory implements ProgramRunnerFactory {
     ProgramRunner runner;
 
     if (provider != null) {
+      LOG.info("ashau - Using runtime provider {} for program type {}", provider, programType, new Exception());
       LOG.trace("Using runtime provider {} for program type {}", provider, programType);
       runner = provider.createProgramRunner(programType, mode, injector);
     } else {

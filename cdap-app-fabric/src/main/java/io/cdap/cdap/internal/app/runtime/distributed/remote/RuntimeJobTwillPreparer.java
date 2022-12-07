@@ -95,6 +95,8 @@ class RuntimeJobTwillPreparer extends AbstractRuntimeTwillPreparer {
       RuntimeJobInfo runtimeJobInfo = createRuntimeJobInfo(runtimeSpec, localizeFiles,
                                                            jvmOptions.getRunnableExtraOptions(runtimeSpec.getName()));
       LOG.info("Starting runnable {} for runId {} with job manager.", runtimeSpec.getName(), getProgramRunId());
+      LOG.info("ashau - Starting runnable {} for runId {} with job manager.", runtimeSpec.getName(), getProgramRunId(),
+               new Exception());
       // launch job using job manager
       jobManager.launch(runtimeJobInfo);
     }

@@ -119,6 +119,7 @@ public class RemoteProgramRunDispatcher implements ProgramRunDispatcher {
   @Override
   public ProgramController dispatchProgram(ProgramRunDispatcherContext dispatcherContext) throws Exception {
     RunId runId = dispatcherContext.getRunId();
+    LOG.info("ashau - dispatching run with RemoteProgramRunDispatcher", new Exception());
     LOG.debug("Dispatching Program Run operation for Run ID: {}", runId.getId());
     RunnableTaskRequest request = RunnableTaskRequest.getBuilder(ProgramRunDispatcherTask.class.getName())
       .withParam(GSON.toJson(dispatcherContext)).build();
@@ -145,13 +146,16 @@ public class RemoteProgramRunDispatcher implements ProgramRunDispatcher {
 
     TwillController twillController;
     if (ClusterMode.ISOLATED.equals(clusterMode) && !tetheredRun) {
+      LOG.info("ashau - got remote twill controller", new Exception());
       twillController = getRemoteTwillController(programRunId);
     } else {
+      LOG.info("ashau - got native twill controller", new Exception());
       twillController = getNativeTwillController(programRunId);
     }
     ProgramController programController = null;
     if (twillController != null) {
       programController = ((ProgramControllerCreator) runner).createProgramController(programRunId, twillController);
+      LOG.info("ashau - created program controller in RemoteProgramRunDispatcher", new Exception());
     }
     if (programController == null) {
       String msg = String.format("Unable to create controller for Program %s with runid %s",

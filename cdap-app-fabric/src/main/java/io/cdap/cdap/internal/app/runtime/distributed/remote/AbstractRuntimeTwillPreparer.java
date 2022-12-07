@@ -463,6 +463,8 @@ abstract class AbstractRuntimeTwillPreparer implements TwillPreparer {
         RuntimeSpecification runtimeSpec = twillRuntimeSpec.getTwillSpecification().getRunnables().values()
           .stream().findFirst().orElseThrow(IllegalStateException::new);
 
+        LOG.info("ashau - launching in RuntimeTwillPreparer", new Exception());
+        LOG.info("ashau - local files = {}", localFiles);
         launch(twillRuntimeSpec, runtimeSpec, getJvmOptions(),
                environments.getOrDefault(runtimeSpec.getName(), Collections.emptyMap()),
                localFiles, () -> throwIfTimeout(startTime, timeout, timeoutUnit));
@@ -539,6 +541,7 @@ abstract class AbstractRuntimeTwillPreparer implements TwillPreparer {
       return;
     }
 
+    LOG.info("ashau - Create and copy {}", Constants.Files.RESOURCES_JAR);
     LOG.debug("Create and copy {}", Constants.Files.RESOURCES_JAR);
     Location location = Locations.toLocation(new File(stagingDir.toFile(), Constants.Files.RESOURCES_JAR));
     bundler.createBundle(location, Collections.emptyList(), resources);
@@ -547,6 +550,7 @@ abstract class AbstractRuntimeTwillPreparer implements TwillPreparer {
   }
 
   private void createRuntimeConfigJar(Path dir, Map<String, LocalFile> localFiles, Path stagingDir) throws IOException {
+    LOG.info("ashau - Create and copy {}", Constants.Files.RUNTIME_CONFIG_JAR);
     LOG.debug("Create and copy {}", Constants.Files.RUNTIME_CONFIG_JAR);
 
     // Jar everything under the given directory, which contains different files needed by AM/runnable containers
@@ -582,6 +586,7 @@ abstract class AbstractRuntimeTwillPreparer implements TwillPreparer {
                                                                         Path stagingDir) throws IOException {
     Map<String, Collection<LocalFile>> localFiles = new HashMap<>();
 
+    LOG.info("ashau - Populating Runnable LocalFiles");
     LOG.debug("Populating Runnable LocalFiles");
     for (Map.Entry<String, RuntimeSpecification> entry : spec.getRunnables().entrySet()) {
       String runnableName = entry.getKey();
@@ -589,6 +594,7 @@ abstract class AbstractRuntimeTwillPreparer implements TwillPreparer {
       for (LocalFile localFile : entry.getValue().getLocalFiles()) {
         LocalFile resolvedLocalFile = resolveLocalFile(localFile, stagingDir);
         localFiles.computeIfAbsent(runnableName, s -> new ArrayList<>()).add(resolvedLocalFile);
+        LOG.info("ashau - Added file {}", resolvedLocalFile.getURI());
         LOG.debug("Added file {}", resolvedLocalFile.getURI());
       }
     }

@@ -649,6 +649,7 @@ public class ProvisioningService extends AbstractIdleService {
     ProvisioningTaskKey taskKey = new ProvisioningTaskKey(programRunId, ProvisioningOp.Type.PROVISION);
     return () -> taskExecutor.submit(taskKey, () -> callWithProgramLogging(programRunId, systemArgs, () -> {
       try {
+        LOG.info("ashau - executing provision task", new Exception());
         return task.executeOnce();
       } catch (InterruptedException e) {
         LOG.debug("Provision task for program run {} interrupted.", taskInfo.getProgramRunId());

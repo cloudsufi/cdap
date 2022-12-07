@@ -50,6 +50,8 @@ import io.cdap.cdap.proto.id.ProgramId;
 import org.apache.tephra.TransactionSystemClient;
 import org.apache.twill.api.RunId;
 import org.apache.twill.discovery.DiscoveryServiceClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -59,7 +61,7 @@ import java.util.List;
  * A {@link ProgramRunner} that runs a {@link Workflow}.
  */
 public class WorkflowProgramRunner extends AbstractProgramRunnerWithPlugin {
-
+  private static final Logger LOG = LoggerFactory.getLogger(WorkflowProgramRunner.class);
   private final ProgramRunnerFactory programRunnerFactory;
   private final MetricsCollectionService metricsCollectionService;
   private final DatasetFramework datasetFramework;
@@ -110,6 +112,7 @@ public class WorkflowProgramRunner extends AbstractProgramRunnerWithPlugin {
 
   @Override
   public ProgramController run(final Program program, final ProgramOptions options) {
+    LOG.info("ashau - running workflow program running", new Exception());
     // Extract and verify options
     ApplicationSpecification appSpec = program.getApplicationSpecification();
     Preconditions.checkNotNull(appSpec, "Missing application specification.");
