@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Cask Data, Inc.
+ * Copyright © 2023 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,24 +14,16 @@
  * the License.
  */
 
-package io.cdap.cdap.etl.api.engine.sql;
+package io.cdap.cdap.etl.api.relational;
 
-import io.cdap.cdap.etl.api.relational.Capability;
+import io.cdap.cdap.api.data.schema.Schema;
 
-/**
- * Defines capabilities for SQL Engine factories
- */
-public enum StandardSQLCapabilities implements Capability {
-  /**
-   * Defines that factory implements SQL92 language
-   */
-  SQL92,
-  /**
-   * Defines that factory implements support for BigQuery specific language
-   */
-  BIGQUERY,
-  /**
-   * Defines that factory implements support for Spark specific language
-   */
-  SPARK
+import javax.annotation.Nullable;
+
+public class ExpressionConversionContext {
+
+    public SqlDialectConversionExpressionFactory getConversionFactory(
+            SqlDialect src, SqlDialect dest, @Nullable Schema schema) {
+        return new SqlDialectConversionExpressionFactory(src, dest, schema);
+    }
 }
