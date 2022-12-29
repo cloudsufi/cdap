@@ -42,7 +42,6 @@ import io.cdap.cdap.internal.app.runtime.monitor.RuntimeClient;
 import io.cdap.cdap.internal.app.store.AppMetadataStore;
 import io.cdap.cdap.internal.app.store.RunRecordDetail;
 import io.cdap.cdap.internal.provision.NativeProvisioner;
-import io.cdap.cdap.messaging.MessagingService;
 import io.cdap.cdap.messaging.data.MessageId;
 import io.cdap.cdap.proto.Notification;
 import io.cdap.cdap.proto.ProgramRunStatus;
@@ -94,11 +93,7 @@ public class RuntimeServiceMainTest extends MasterServiceMainTestBase {
     // Write out program state events to simulate program start
     Injector appFabricInjector = getServiceMainInstance(AppFabricServiceMain.class).getInjector();
     CConfiguration cConf = appFabricInjector.getInstance(CConfiguration.class);
-    ProgramStatePublisher programStatePublisher = new MessagingProgramStatePublisher(
-      appFabricInjector.getInstance(MessagingService.class),
-      NamespaceId.SYSTEM.topic(cConf.get(Constants.AppFabric.PROGRAM_STATUS_RECORD_EVENT_TOPIC)),
-      RetryStrategies.fromConfiguration(cConf, "system.program.state.")
-    );
+    ProgramStatePublisher programStatePublisher = appFabricInjector.getInstance(MessagingProgramStatePublisher.class);
     new MessagingProgramStateWriter(programStatePublisher).start(programRunId, programOptions, null,
                                                                  programDescriptor);
 

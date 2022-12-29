@@ -16,6 +16,7 @@
 package io.cdap.cdap.internal.app.program;
 
 import com.google.gson.Gson;
+import com.google.inject.ImplementedBy;
 import io.cdap.cdap.app.program.ProgramDescriptor;
 import io.cdap.cdap.internal.app.runtime.ProgramOptionConstants;
 import io.cdap.cdap.proto.Notification;
@@ -26,6 +27,7 @@ import java.util.Map;
 /**
  * Publishing program state messages and heartbeats
  */
+@ImplementedBy(MessagingProgramStatePublisher.class)
 public interface ProgramStatePublisher {
 
   /**
