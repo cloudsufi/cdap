@@ -95,9 +95,8 @@ public class RuntimeServiceMainTest extends MasterServiceMainTestBase {
     Injector appFabricInjector = getServiceMainInstance(AppFabricServiceMain.class).getInjector();
     CConfiguration cConf = appFabricInjector.getInstance(CConfiguration.class);
     ProgramStatePublisher programStatePublisher = new MessagingProgramStatePublisher(
-      appFabricInjector.getInstance(MessagingService.class),
-      NamespaceId.SYSTEM.topic(cConf.get(Constants.AppFabric.PROGRAM_STATUS_RECORD_EVENT_TOPIC)),
-      RetryStrategies.fromConfiguration(cConf, "system.program.state.")
+      cConf,
+      appFabricInjector.getInstance(MessagingService.class)
     );
     new MessagingProgramStateWriter(programStatePublisher).start(programRunId, programOptions, null,
                                                                  programDescriptor);

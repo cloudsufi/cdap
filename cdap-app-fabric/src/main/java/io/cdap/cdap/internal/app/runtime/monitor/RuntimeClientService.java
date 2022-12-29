@@ -160,7 +160,7 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
     TopicId topicId = NamespaceId.SYSTEM.topic(topic);
 
     String programStatusTopic = cConf.get(Constants.AppFabric.PROGRAM_STATUS_EVENT_TOPIC);
-    if (programStatusTopic.equals(topic)) {
+    if (topic.startsWith(programStatusTopic)) {
       return new ProgramStatusTopicRelayer(topicId);
     }
     return new TopicRelayer(topicId);
