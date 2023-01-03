@@ -34,11 +34,15 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class DefaultSystemProvisionerContext implements ProvisionerSystemContext {
 
+  //TODO - make configurable
+  private static final long RELOAD_INTERVAL_MILLIS = 10000;
+
   private final String prefix;
   private final CConfiguration cConf;
   private final AtomicReference<Map<String, String>> properties;
   private final String cdapVersion;
   private final Map<String, Lock> locks;
+  private long lastReload = System.currentTimeMillis();
 
   DefaultSystemProvisionerContext(CConfiguration cConf, String provisionerName) {
     this.prefix = String.format("%s%s.", Constants.Provisioner.SYSTEM_PROPERTY_PREFIX, provisionerName);
@@ -57,8 +61,11 @@ public class DefaultSystemProvisionerContext implements ProvisionerSystemContext
 
   @Override
   public synchronized void reloadProperties() {
-    cConf.reloadConfiguration();
-    properties.set(Collections.unmodifiableMap(cConf.getPropsWithPrefix(prefix)));
+    if (System.currentTimeMillis() > lastReload + RELOAD_INTERVAL_MILLIS) {
+      cConf.reloadConfiguration();
+      properties.set(Collections.unmodifiableMap(cConf.getPropsWithPrefix(prefix)));
+      lastReload = System.currentTimeMillis();
+    }
   }
 
   @Override
