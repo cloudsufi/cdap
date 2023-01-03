@@ -19,6 +19,7 @@ package io.cdap.cdap.data2.metadata.lineage.field;
 import io.cdap.cdap.api.lineage.field.EndPoint;
 
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 /**
  * Represent a single field along with the EndPoint to which it belongs to.
@@ -28,7 +29,7 @@ public class EndPointField {
   private final String field;
   private transient Integer hashCode;
 
-  public EndPointField(EndPoint endPoint, String field) {
+  public EndPointField(EndPoint endPoint, @Nullable String field) {
     this.endPoint = endPoint;
     this.field = field;
   }

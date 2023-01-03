@@ -22,6 +22,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import io.cdap.cdap.api.lineage.field.EndPoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -36,15 +38,29 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class EndpointFieldDeserializer implements JsonDeserializer<EndPointField> {
 
   private final Map<EndPointField, EndPointField> endpointFields = new HashMap<>();
+  private static final Logger LOG = LoggerFactory.getLogger(EndpointFieldDeserializer.class);
 
   @Override
   public EndPointField deserialize(JsonElement json, Type typeOfT,
                                    JsonDeserializationContext context) throws JsonParseException {
-    JsonObject obj = json.getAsJsonObject();
-    EndPoint endPoint = context.deserialize(obj.getAsJsonObject("endPoint"), EndPoint.class);
-    String field = obj.getAsJsonPrimitive("field").getAsString();
+    EndPointField endPointField = null;
+    try {
+      JsonObject obj = json.getAsJsonObject();
+      LOG.info("obj - {}", obj);
+      EndPoint endPoint = context.deserialize(obj.getAsJsonObject("endPoint"), EndPoint.class);
+      LOG.info("endpoint - {}", endPoint);
+      if (obj.getAsJsonPrimitive("field") != null) {
+        String field = obj.getAsJsonPrimitive("field").getAsString();
+        LOG.info("field - {}", field);
+        //EndPoint(name = null, namespace=null, props = {})
 
-    EndPointField endPointField = new EndPointField(endPoint, field);
-    return endpointFields.computeIfAbsent(endPointField, k -> endPointField);
+        endPointField = new EndPointField(endPoint, field);
+      }
+    } catch (Exception e) {
+      LOG.error("-----------------caught the exception--------------------------");
+      LOG.error(e.getMessage());
+    }
+    EndPointField finalEndPointField = endPointField;
+    return endpointFields.computeIfAbsent(endPointField, k -> finalEndPointField);
   }
 }
