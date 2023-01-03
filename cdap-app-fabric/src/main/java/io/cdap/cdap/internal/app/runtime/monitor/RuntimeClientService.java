@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Spliterators;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -79,7 +80,7 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
   private final ProgramRunId programRunId;
   private final RuntimeClient runtimeClient;
   private final int fetchLimit;
-  private long programFinishTime;
+  private final AtomicLong programFinishTime;
 
   @Inject
   RuntimeClientService(CConfiguration cConf, MessagingService messagingService,
@@ -91,7 +92,7 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
     this.programRunId = programRunId;
     this.runtimeClient = runtimeClient;
     this.fetchLimit = cConf.getInt(Constants.RuntimeMonitor.BATCH_SIZE);
-    this.programFinishTime = -1L;
+    this.programFinishTime = new AtomicLong(-1L);
     this.topicRelayers = RuntimeMonitors.createTopicConfigs(cConf).entrySet().stream()
       .collect(Collectors.toMap(Map.Entry::getKey, e -> createTopicRelayer(cConf, e.getValue())));
   }
@@ -105,7 +106,7 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
     }
 
     // If we got the program finished state, determine when to shutdown
-    if (programFinishTime > 0) {
+    if (getProgramFinishTime() > 0) {
       // Gives half the time of the graceful shutdown time to allow empty fetches
       // Essentially is the wait time for any unpublished events on the remote runtime to publish
       // E.g. Metrics from the remote runtime process might have some delay after the program state changed,
@@ -113,8 +114,8 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
       // If the nextPollDelay returned by all topicRelays equals to the pollTimeMillis,
       // that means all of them fetched till the end of the corresponding topic in the latest fetch.
       long now = System.currentTimeMillis();
-      if ((nextPollDelay == pollTimeMillis && now - (gracefulShutdownMillis >> 1) > programFinishTime)
-          || (now - gracefulShutdownMillis > programFinishTime)) {
+      if ((nextPollDelay == pollTimeMillis && now - (gracefulShutdownMillis >> 1) > getProgramFinishTime())
+          || (now - gracefulShutdownMillis > getProgramFinishTime())) {
         LOG.debug("Program {} terminated. Shutting down runtime client service.", programRunId);
         stop();
       }
@@ -142,7 +143,7 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
 
   @VisibleForTesting
   long getProgramFinishTime() {
-    return programFinishTime;
+    return programFinishTime.get();
   }
 
   /**
@@ -272,6 +273,7 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
     ProgramStatusTopicRelayer(TopicId topicId) {
       super(topicId);
       this.lastProgramStateMessages = new LinkedList<>();
+      LOG.trace("Watching for status messages in topic {}", topicId.getTopic());
     }
 
     @Override
@@ -279,10 +281,10 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
       List<Message> message = StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
         .collect(Collectors.toList());
 
-      if (programFinishTime < 0) {
-        programFinishTime = findProgramFinishTime(message);
+      if (programFinishTime.get() < 0) {
+        programFinishTime.compareAndSet(-1, findProgramFinishTime(message));
       }
-      if (programFinishTime >= 0) {
+      if (programFinishTime.get() >= 0) {
         // Buffer the program state messages and don't publish them until the end
         // Otherwise, once we publish, the deprovisioner will kick in and delete the cluster
         // which could result in losing the last set of messages for some topics.
@@ -305,7 +307,7 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
                                                               getRetryStrategy());
       Retries.runWithRetries(() -> {
         ProgramStatusTopicRelayer.super.close();
-        if (programFinishTime < 0) {
+        if (getProgramFinishTime() < 0) {
           throw new RetryableException("Program completion is not yet observed");
         }
       }, retryStrategy, t -> t instanceof IOException || t instanceof RetryableException);
