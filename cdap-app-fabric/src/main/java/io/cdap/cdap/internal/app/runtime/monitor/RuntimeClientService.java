@@ -132,6 +132,18 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
 
   @Override
   protected void doShutdown() throws Exception {
+    // Keep polling until it sees the program completion
+    RetryStrategy retryStrategy = RetryStrategies.timeLimit(gracefulShutdownMillis, TimeUnit.MILLISECONDS,
+                                                            getRetryStrategy());
+    Retries.runWithRetries(() -> {
+      for (TopicRelayer topicRelayer : topicRelayers.values()) {
+        topicRelayer.prepareClose();
+      }
+      if (getProgramFinishTime() < 0) {
+        throw new RetryableException("Program completion is not yet observed");
+      }
+    }, retryStrategy, t -> t instanceof IOException || t instanceof RetryableException);
+
     // Close all the TopicRelay, which will flush out all pending messages
     for (TopicRelayer topicRelayer : topicRelayers.values()) {
       Retries.callWithRetries((Retries.Callable<Void, IOException>) () -> {
@@ -174,7 +186,7 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
 
     private final Logger progressLog = Loggers.sampling(LOG, LogSamplers.limitRate(TimeUnit.SECONDS.toMillis(30)));
 
-    private final TopicId topicId;
+    protected final TopicId topicId;
     private String lastMessageId;
     private long nextPublishTimeMillis;
     private int totalPublished;
@@ -244,8 +256,19 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
       runtimeClient.sendMessages(programRunId, topicId, iterator);
     }
 
+    /**
+     * Prepare to close by sending out all messages except final program status.
+     */
+    public void prepareClose() throws IOException{
+      forcePoll();
+    }
+
     @Override
     public void close() throws IOException {
+      forcePoll();
+    }
+
+    protected void forcePoll() {
       try {
         // Force one extra poll with retry
         nextPublishTimeMillis = 0L;
@@ -269,6 +292,10 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
   private class ProgramStatusTopicRelayer extends TopicRelayer {
 
     private final List<Message> lastProgramStateMessages;
+    /**
+     * Tell if program finish was detected by this relayer. In this case we hold off sending final status messages
+     */
+    private boolean detectedProgramFinish;
 
     ProgramStatusTopicRelayer(TopicId topicId) {
       super(topicId);
@@ -281,10 +308,15 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
       List<Message> message = StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
         .collect(Collectors.toList());
 
-      if (programFinishTime.get() < 0) {
-        programFinishTime.compareAndSet(-1, findProgramFinishTime(message));
+      if (programFinishTime.get() == -1L) {
+        long finishTime = findProgramFinishTime(message);
+        if (finishTime >=0) {
+          detectedProgramFinish = true;
+          LOG.trace("Detected program {} finish time {} in topic {}", programRunId, finishTime,  topicId.getTopic());
+        }
+        programFinishTime.compareAndSet(-1L, finishTime);
       }
-      if (programFinishTime.get() >= 0) {
+      if (detectedProgramFinish) {
         // Buffer the program state messages and don't publish them until the end
         // Otherwise, once we publish, the deprovisioner will kick in and delete the cluster
         // which could result in losing the last set of messages for some topics.
@@ -302,16 +334,7 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
 
     @Override
     public void close() throws IOException {
-      // Keep polling until it sees the program completion
-      RetryStrategy retryStrategy = RetryStrategies.timeLimit(gracefulShutdownMillis, TimeUnit.MILLISECONDS,
-                                                              getRetryStrategy());
-      Retries.runWithRetries(() -> {
-        ProgramStatusTopicRelayer.super.close();
-        if (getProgramFinishTime() < 0) {
-          throw new RetryableException("Program completion is not yet observed");
-        }
-      }, retryStrategy, t -> t instanceof IOException || t instanceof RetryableException);
-
+      super.close();
       if (!lastProgramStateMessages.isEmpty()) {
         try {
           Retries.runWithRetries(() -> super.processMessages(lastProgramStateMessages.iterator()),
