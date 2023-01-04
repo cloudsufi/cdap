@@ -259,7 +259,7 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
     /**
      * Prepare to close by sending out all messages except final program status.
      */
-    public void prepareClose() throws IOException{
+    public void prepareClose() throws IOException {
       forcePoll();
     }
 
@@ -310,9 +310,9 @@ public class RuntimeClientService extends AbstractRetryableScheduledService {
 
       if (programFinishTime.get() == -1L) {
         long finishTime = findProgramFinishTime(message);
-        if (finishTime >=0) {
+        if (finishTime >= 0) {
           detectedProgramFinish = true;
-          LOG.trace("Detected program {} finish time {} in topic {}", programRunId, finishTime,  topicId.getTopic());
+          LOG.trace("Detected program {} finish time {} in topic {}", programRunId, finishTime, topicId.getTopic());
         }
         programFinishTime.compareAndSet(-1L, finishTime);
       }
