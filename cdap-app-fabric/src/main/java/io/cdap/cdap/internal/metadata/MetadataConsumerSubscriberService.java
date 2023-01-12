@@ -253,6 +253,8 @@ public class MetadataConsumerSubscriberService extends AbstractMessagingSubscrib
       long endTimeMs = System.currentTimeMillis();
       ProgramRun run = getProgramRunForConsumer(programRunId, startTimeMs, endTimeMs);
       LineageInfo info = getLineageInfoForConsumer(fieldLineageInfo, startTimeMs, endTimeMs);
+      LOG.info("s to t - {}", info.getSourceToTargets());
+      LOG.info("t to s - {}", info.getTargetToSources());
       this.consumers.forEach((key, consumer) -> {
         try {
           DefaultMetadataConsumerContext metadataConsumerContext =

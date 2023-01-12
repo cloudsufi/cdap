@@ -49,6 +49,8 @@ public class MetadataConsumerExtensionLoader extends AbstractExtensionLoader<Str
             ? cConf.get(Constants.MetadataConsumer.METADATA_CONSUMER_EXTENSIONS_DIR) : "");
     this.enabledMetadataConsumers = cConf.getStringCollection(
       Constants.MetadataConsumer.METADATA_CONSUMER_EXTENSIONS_ENABLED_LIST);
+    LOG.info("extensions dir - {}", cConf.get(Constants.MetadataConsumer.METADATA_CONSUMER_EXTENSIONS_DIR));
+    LOG.info("enabled consumers list - {}", this.enabledMetadataConsumers);
     if (this.enabledMetadataConsumers == null || this.enabledMetadataConsumers.isEmpty()) {
       LOG.debug("No metadata consumers enabled.");
       return;
