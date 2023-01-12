@@ -116,6 +116,8 @@ public class MetadataConsumerSubscriberService extends AbstractMessagingSubscrib
     this.maxRetriesOnConflict = cConf.getInt(Constants.Metadata.MESSAGING_RETRIES_ON_CONFLICT);
     this.cConf = cConf;
     this.provider = provider;
+    LOG.info("Provider - {}", provider);
+    LOG.info("All providers - {}", provider.getAll());
   }
 
   @Override
@@ -234,6 +236,7 @@ public class MetadataConsumerSubscriberService extends AbstractMessagingSubscrib
 
       ProgramRunId programRunId = (ProgramRunId) message.getEntityId();
       FieldLineageInfo fieldLineageInfo;
+      LOG.info("entity id - {}", message.getEntityId());
       try {
         Gson gson = new GsonBuilder()
           .registerTypeAdapter(EntityId.class, new EntityIdTypeAdapter())
@@ -252,6 +255,17 @@ public class MetadataConsumerSubscriberService extends AbstractMessagingSubscrib
       long startTimeMs = RunIds.getTime(programRunId.getRun(), TimeUnit.MILLISECONDS);
       long endTimeMs = System.currentTimeMillis();
       ProgramRun run = getProgramRunForConsumer(programRunId, startTimeMs, endTimeMs);
+      LOG.info("-----------------------------------------------------");
+      LOG.info("-----------------------------------------------------");
+      LOG.info("-----------------------------------------------------");
+      LOG.info("field lineage info incoming summary - {}", fieldLineageInfo.getIncomingSummary());
+      LOG.info("field lineage info outgoing summary - {}", fieldLineageInfo.getOutgoingSummary());
+      LOG.info("field lineage info sources - {}", fieldLineageInfo.getSources());
+      LOG.info("field lineage info destinations - {}", fieldLineageInfo.getDestinations());
+      LOG.info("field lineage info operations - {}", fieldLineageInfo.getOperations());
+      LOG.info("-----------------------------------------------------");
+      LOG.info("-----------------------------------------------------");
+      LOG.info("-----------------------------------------------------");
       LineageInfo info = getLineageInfoForConsumer(fieldLineageInfo, startTimeMs, endTimeMs);
       LOG.info("s to t - {}", info.getSourceToTargets());
       LOG.info("t to s - {}", info.getTargetToSources());
@@ -298,6 +312,11 @@ public class MetadataConsumerSubscriberService extends AbstractMessagingSubscrib
 
     private Map<Asset, Set<Asset>> getAssetsMapFromEndpointFieldsMap(Map<EndPointField, Set<EndPointField>>
                                                                        endPointFieldSetMap) {
+      LOG.info("----------------------------------------");
+      LOG.info("----------------------------------------");
+      LOG.info("endpoints field map - {}", endPointFieldSetMap);
+      LOG.info("----------------------------------------");
+      LOG.info("----------------------------------------");
       return endPointFieldSetMap.entrySet().stream()
         .collect(Collectors.toMap(entry -> getAssetForEndpoint(entry.getKey().getEndPoint()),
                                   entry -> entry.getValue().stream()
