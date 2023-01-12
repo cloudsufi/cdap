@@ -754,6 +754,7 @@ class ProgramNotificationSingleTopicSubscriberService extends AbstractNotificati
         break;
       case DEPROVISIONING:
         RunRecordDetail recordedMeta = appMetadataStore.recordProgramDeprovisioning(programRunId, messageIdBytes);
+        LOG.error(">>> PROGRAM STATUS upon deprovisioning is {}", recordedMeta.getStatus());
         // If we skipped recording the run status, that means this was a duplicate message,
         // or an invalid state transition. In both cases, we should not try to deprovision the cluster.
         if (recordedMeta != null) {

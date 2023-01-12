@@ -139,16 +139,20 @@ public abstract class ProvisioningTask implements RepeatedTask {
       ProvisioningOp.Status nextState = taskInfo.getProvisioningOp().getStatus();
 
       // If state doesn't change, determine the delay based on the polling strategy
+      LOG.error(">>> state is {} and nextState is {}", state, nextState);
       if (state == nextState) {
         if (subTaskPollingStrategy == null) {
           subTaskPollingStrategy = provisioner.getPollingStrategy(provisionerContext, taskInfo.getCluster());
         }
-        return Math.max(0, subTaskPollingStrategy.nextPoll(subTaskExecNums++, subTaskStartTime));
+        long w = Math.max(0, subTaskPollingStrategy.nextPoll(subTaskExecNums++, subTaskStartTime));
+        LOG.error(">>> waiting for {}", w);
+        return w;
       }
       // Otherwise, execute the next task immediately.
       subTaskPollingStrategy = null;
       subTaskStartTime = 0L;
       subTaskExecNums = 0;
+      LOG.error(">>>>> Executing next task immediately");
       return 0;
     } catch (InterruptedException e) {
       throw e;

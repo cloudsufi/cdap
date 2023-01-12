@@ -324,6 +324,13 @@ public class DataprocRuntimeJobManager implements RuntimeJobManager {
 
   @Override
   public Optional<RuntimeJobDetail> getDetail(ProgramRunInfo programRunInfo) throws Exception {
+    try {
+      throw new Exception(">>>> Dummy exception");
+    } catch (Exception ex) {
+      LOG.error(">>>> Stack is ", ex);
+    }
+
+    LOG.error(">>> Calling GetJob for {}", programRunInfo.getRun());
     String jobId = getJobId(programRunInfo);
 
     try {
