@@ -113,18 +113,22 @@ public abstract class AbstractDataprocProvisioner implements Provisioner {
     // Also cleanup files created by the job run.
     if (jobManager != null) {
       try {
-        RuntimeJobDetail jobDetail = jobManager.getDetail(context.getProgramRunInfo()).orElse(null);
-        if (jobDetail != null && !jobDetail.getStatus().isTerminated()) {
-          return ClusterStatus.RUNNING;
-        }
+        if (context.checkJobStatus()) {
+          LOG.error(">>>>> Inside checkJobStatus if clause");
+          RuntimeJobDetail jobDetail = jobManager.getDetail(context.getProgramRunInfo()).orElse(null);
 
-        if (jobDetail != null
+          if (jobDetail != null && !jobDetail.getStatus().isTerminated()) {
+            return ClusterStatus.RUNNING;
+          }
+
+          if (jobDetail != null
             && jobDetail.getStatus() == RuntimeJobStatus.FAILED
             && (jobDetail instanceof DataprocRuntimeJobDetail)) {
-          // Status details is specific to dataproc jobs, so it was not added to RuntimeJobDetail spi.
-          String statusDetails = ((DataprocRuntimeJobDetail) jobDetail).getJobStatusDetails();
-          if (statusDetails != null) {
-            LOG.error("Dataproc job failed with the status details: {}", statusDetails);
+            // Status details is specific to dataproc jobs, so it was not added to RuntimeJobDetail spi.
+            String statusDetails = ((DataprocRuntimeJobDetail) jobDetail).getJobStatusDetails();
+            if (statusDetails != null) {
+              LOG.error("Dataproc job failed with the status details: {}", statusDetails);
+            }
           }
         }
       } finally {

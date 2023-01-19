@@ -148,6 +148,11 @@ public class MockProvisionerContext implements ProvisionerContext {
   }
 
   @Override
+  public boolean checkJobStatus() {
+    return false;
+  }
+
+  @Override
   public <T> CompletionStage<T> execute(Callable<T> callable) {
     CompletableFuture<T> result = new CompletableFuture<>();
     try {

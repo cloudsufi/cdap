@@ -228,7 +228,7 @@ public class ProvisioningServiceTest {
                                               new MockProvisioner.PropertyBuilder().failCreate().build()).programRunId;
 
     Runnable task = TransactionRunners.run(transactionRunner, context -> {
-      return provisioningService.deprovision(programRunId, context);
+      return provisioningService.deprovision(programRunId, false, context);
     });
     task.run();
 
@@ -292,7 +292,8 @@ public class ProvisioningServiceTest {
     TaskFields taskFields = testProvision(ProvisioningOp.Status.CREATED, provisionerInfo);
 
     Runnable task = TransactionRunners.run(transactionRunner, context -> {
-      return provisioningService.deprovision(taskFields.programRunId, context, t -> { });
+      return provisioningService.deprovision(taskFields.programRunId, false, context, t -> {
+      });
     });
     task.run();
     Assert.assertTrue(provisioningService.cancelDeprovisionTask(taskFields.programRunId).isPresent());
@@ -321,7 +322,7 @@ public class ProvisioningServiceTest {
   private void testDeprovision(ProgramRunId programRunId, ProvisioningOp.Status expectedState)
     throws InterruptedException, ExecutionException, TimeoutException, IOException {
     Runnable task = TransactionRunners.run(transactionRunner, context -> {
-      return provisioningService.deprovision(programRunId, context, t -> { });
+      return provisioningService.deprovision(programRunId, false, context, t -> { });
     });
     task.run();
     ProvisioningTaskKey taskKey = new ProvisioningTaskKey(programRunId, ProvisioningOp.Type.DEPROVISION);

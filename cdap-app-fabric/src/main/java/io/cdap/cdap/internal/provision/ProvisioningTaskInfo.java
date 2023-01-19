@@ -38,6 +38,7 @@ public class ProvisioningTaskInfo {
   private final String provisionerName;
   private final URI secureKeysDir;
   private final Cluster cluster;
+  private final boolean checkJobStatus;
 
   public ProvisioningTaskInfo(ProgramRunId programRunId, ProgramDescriptor programDescriptor,
                               ProgramOptions programOptions, Map<String, String> provisionerProperties,
@@ -52,12 +53,36 @@ public class ProvisioningTaskInfo {
     this.op = op;
     this.secureKeysDir = secureKeysDir;
     this.cluster = cluster;
+    this.checkJobStatus = false;
+  }
+
+  public ProvisioningTaskInfo(ProgramRunId programRunId, ProgramDescriptor programDescriptor,
+                              ProgramOptions programOptions, Map<String, String> provisionerProperties,
+                              String provisionerName, String user, ProvisioningOp op,
+                              URI secureKeysDir, @Nullable Cluster cluster, boolean checkJobStatus) {
+    this.programRunId = programRunId;
+    this.provisionerProperties = provisionerProperties;
+    this.programDescriptor = programDescriptor;
+    this.programOptions = programOptions;
+    this.user = user;
+    this.provisionerName = provisionerName;
+    this.op = op;
+    this.secureKeysDir = secureKeysDir;
+    this.cluster = cluster;
+    this.checkJobStatus = checkJobStatus;
   }
 
   public ProvisioningTaskInfo(ProvisioningTaskInfo existing, ProvisioningOp op, @Nullable Cluster cluster) {
     this(existing.getProgramRunId(), existing.getProgramDescriptor(), existing.getProgramOptions(),
          existing.getProvisionerProperties(), existing.getProvisionerName(), existing.getUser(), op,
-         existing.getSecureKeysDir(), cluster);
+         existing.getSecureKeysDir(), cluster, false);
+  }
+
+  public ProvisioningTaskInfo(ProvisioningTaskInfo existing, ProvisioningOp op, @Nullable Cluster cluster,
+                              boolean checkJobStatus) {
+    this(existing.getProgramRunId(), existing.getProgramDescriptor(), existing.getProgramOptions(),
+         existing.getProvisionerProperties(), existing.getProvisionerName(), existing.getUser(), op,
+         existing.getSecureKeysDir(), cluster, checkJobStatus);
   }
 
   public ProvisioningTaskKey getTaskKey() {
@@ -101,4 +126,7 @@ public class ProvisioningTaskInfo {
     return cluster;
   }
 
+  public boolean checkJobStatus() {
+    return checkJobStatus;
+  }
 }

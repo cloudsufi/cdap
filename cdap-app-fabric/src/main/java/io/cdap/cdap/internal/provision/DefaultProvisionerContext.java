@@ -59,12 +59,14 @@ public class DefaultProvisionerContext implements ProvisionerContext {
   private final String provisionerName;
   private final String profileName;
   private final Executor executor;
+  private final boolean checkJobStatus;
 
   DefaultProvisionerContext(ProgramRunId programRunId, String provisionerName, Map<String, String> properties,
                             SparkCompat sparkCompat, @Nullable SSHContext sshContext,
                             @Nullable VersionInfo appCDAPVersion, LocationFactory locationFactory,
                             RuntimeMonitorType runtimeMonitorType, MetricsCollectionService metricsCollectionService,
-                            @Nullable String profileName, Executor executor) {
+                            @Nullable String profileName, Executor executor,
+                            boolean checkJobStatus) {
     this.programRun = new ProgramRun(programRunId.getNamespace(), programRunId.getApplication(),
                                      programRunId.getProgram(), programRunId.getRun());
     this.programRunInfo = new ProgramRunInfo.Builder()
@@ -86,6 +88,7 @@ public class DefaultProvisionerContext implements ProvisionerContext {
     this.metricsCollectionService = metricsCollectionService;
     this.provisionerName = provisionerName;
     this.executor = executor;
+    this.checkJobStatus = checkJobStatus;
   }
 
   @Override
@@ -162,5 +165,10 @@ public class DefaultProvisionerContext implements ProvisionerContext {
       }
     });
     return result;
+  }
+
+  @Override
+  public boolean checkJobStatus() {
+    return checkJobStatus;
   }
 }

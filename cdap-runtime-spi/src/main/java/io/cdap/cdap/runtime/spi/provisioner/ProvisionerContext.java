@@ -119,4 +119,6 @@ public interface ProvisionerContext {
    */
   @Nullable
   String getProfileName();
+
+  boolean checkJobStatus();
 }

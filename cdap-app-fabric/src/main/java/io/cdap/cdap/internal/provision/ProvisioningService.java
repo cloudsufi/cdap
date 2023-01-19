@@ -218,7 +218,7 @@ public class ProvisioningService extends AbstractIdleService {
         defaultSSHContext = new DefaultSSHContext(
           Networks.getAddress(cConf, Constants.NETWORK_PROXY_ADDRESS), null, null);
       }
-      context = createContext(cConf, programOptions, programRunId, userId, properties, defaultSSHContext);
+      context = createContext(cConf, programOptions, programRunId, false, userId, properties, defaultSSHContext);
     } catch (InvalidMacroException e) {
       // This shouldn't happen
       runWithProgramLogging(programRunId, systemArgs,
@@ -399,7 +399,7 @@ public class ProvisioningService extends AbstractIdleService {
     Provisioner provisioner = provisionerInfo.get().provisioners.get(name);
     String user = programOptions.getArguments().getOption(ProgramOptionConstants.USER_ID);
     Map<String, String> properties = SystemArguments.getProfileProperties(systemArgs);
-    ProvisionerContext context = createContext(cConf, programOptions, programRunId, user, properties, null);
+    ProvisionerContext context = createContext(cConf, programOptions, programRunId, false, user, properties, null);
     return provisioner.getRuntimeJobManager(context);
   }
 
@@ -414,14 +414,14 @@ public class ProvisioningService extends AbstractIdleService {
    * @param context context for the transaction
    * @return runnable that will actually execute the cluster deprovisioning
    */
-  public Runnable deprovision(ProgramRunId programRunId, StructuredTableContext context) throws IOException,
-    InterruptedException {
-    return deprovision(programRunId, context, taskStateCleanup);
+  public Runnable deprovision(ProgramRunId programRunId, boolean checkJobStatus, StructuredTableContext context)
+    throws IOException, InterruptedException {
+    return deprovision(programRunId, checkJobStatus, context, taskStateCleanup);
   }
 
   // This is visible for testing, where we may not want to delete the task information after it completes
   @VisibleForTesting
-  Runnable deprovision(ProgramRunId programRunId, StructuredTableContext context,
+  Runnable deprovision(ProgramRunId programRunId, boolean checkJobStatus, StructuredTableContext context,
                        Consumer<ProgramRunId> taskCleanup) throws IOException, InterruptedException {
     initializeLatch.await(120, TimeUnit.SECONDS);
     // look up information for the corresponding provision operation
@@ -459,7 +459,7 @@ public class ProvisioningService extends AbstractIdleService {
     ProvisioningOp provisioningOp = new ProvisioningOp(ProvisioningOp.Type.DEPROVISION,
                                                        ProvisioningOp.Status.REQUESTING_DELETE);
     ProvisioningTaskInfo provisioningTaskInfo = new ProvisioningTaskInfo(existing, provisioningOp,
-                                                                         existing.getCluster());
+                                                                         existing.getCluster(), checkJobStatus);
     ProvisionerTable provisionerTable = new ProvisionerTable(context);
     provisionerTable.putTaskInfo(provisioningTaskInfo);
 
@@ -623,7 +623,7 @@ public class ProvisioningService extends AbstractIdleService {
       SSHContext sshContext = new DefaultSSHContext(Networks.getAddress(cConf, Constants.NETWORK_PROXY_ADDRESS),
                                                     locationFactory.create(taskInfo.getSecureKeysDir()),
                                                     createSSHKeyPair(taskInfo));
-      context = createContext(cConf, programOptions, programRunId, taskInfo.getUser(),
+      context = createContext(cConf, programOptions, programRunId, false, taskInfo.getUser(),
                               taskInfo.getProvisionerProperties(), sshContext);
     } catch (IOException e) {
       runWithProgramLogging(taskInfo.getProgramRunId(), systemArgs,
@@ -678,7 +678,8 @@ public class ProvisioningService extends AbstractIdleService {
     try {
       SSHContext sshContext = new DefaultSSHContext(Networks.getAddress(cConf, Constants.NETWORK_PROXY_ADDRESS),
                                                     null, sshKeyPair);
-      context = createContext(cConf, taskInfo.getProgramOptions(), programRunId, taskInfo.getUser(), properties,
+      context = createContext(cConf, taskInfo.getProgramOptions(), programRunId, taskInfo.checkJobStatus(),
+                              taskInfo.getUser(), properties,
                               sshContext);
     } catch (InvalidMacroException e) {
       runWithProgramLogging(programRunId, systemArgs,
@@ -789,7 +790,7 @@ public class ProvisioningService extends AbstractIdleService {
   }
 
   private ProvisionerContext createContext(CConfiguration cConf, ProgramOptions programOptions,
-                                           ProgramRunId programRunId, String userId,
+                                           ProgramRunId programRunId, boolean checkJobStatus, String userId,
                                            Map<String, String> properties,
                                            @Nullable SSHContext sshContext) {
     RuntimeMonitorType runtimeMonitorType = SystemArguments.getRuntimeMonitorType(cConf, programOptions);
@@ -802,7 +803,8 @@ public class ProvisioningService extends AbstractIdleService {
     Map<String, String> evaluated = evaluateMacros(secureStore, userId, programRunId.getNamespace(), properties);
     return new DefaultProvisionerContext(programRunId, provisionerName, evaluated, sparkCompat, sshContext,
                                          appCDAPVersion, locationFactory, runtimeMonitorType,
-                                         metricsCollectionService, profileName, contextExecutor);
+                                         metricsCollectionService, profileName, contextExecutor,
+                                         checkJobStatus);
   }
 
   /**

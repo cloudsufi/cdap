@@ -758,7 +758,8 @@ class ProgramNotificationSingleTopicSubscriberService extends AbstractNotificati
         // If we skipped recording the run status, that means this was a duplicate message,
         // or an invalid state transition. In both cases, we should not try to deprovision the cluster.
         if (recordedMeta != null) {
-          return Optional.of(provisioningService.deprovision(programRunId, context));
+          boolean checkJobStatus = recordedMeta.getStatus() != ProgramRunStatus.COMPLETED;
+          return Optional.of(provisioningService.deprovision(programRunId, checkJobStatus, context));
         }
         break;
       case DEPROVISIONED:
