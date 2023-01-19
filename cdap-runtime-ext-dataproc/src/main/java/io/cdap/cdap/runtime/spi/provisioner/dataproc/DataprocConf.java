@@ -160,6 +160,9 @@ final class DataprocConf {
 
   private final boolean gcsCacheEnabled;
   private  final String troubleshootingDocsUrl;
+  private final boolean driverPoolsEnabled;
+  private final String driverMemoryMb;
+  private final String driverVcores;
 
   public String getTroubleshootingDocsUrl() {
     return troubleshootingDocsUrl;
@@ -186,7 +189,8 @@ final class DataprocConf {
                        long clusterReuseThresholdMinutes, @Nullable String clusterReuseKey,
                        boolean enablePredefinedAutoScaling, int computeReadTimeout, int computeConnectionTimeout,
                        @Nullable String rootUrl, boolean gcsCacheEnabled, boolean disableLocalCaching,
-                       String troubleshootingDocsUrl) {
+                       String troubleshootingDocsUrl, boolean driverPoolsEnabled, String driverMemoryMb,
+                       String driverVcores) {
     this.accountKey = accountKey;
     this.region = region;
     this.zone = zone;
@@ -243,6 +247,9 @@ final class DataprocConf {
     this.gcsCacheEnabled = gcsCacheEnabled;
     this.disableLocalCaching = disableLocalCaching;
     this.troubleshootingDocsUrl = troubleshootingDocsUrl;
+    this.driverPoolsEnabled = driverPoolsEnabled;
+    this.driverMemoryMb = driverMemoryMb;
+    this.driverVcores = driverVcores;
   }
 
   String getRegion() {
@@ -699,6 +706,14 @@ final class DataprocConf {
       properties.getOrDefault(DataprocUtils.TROUBLESHOOTING_DOCS_URL_KEY,
                               DataprocUtils.TROUBLESHOOTING_DOCS_URL_DEFAULT);
 
+    // If true, dataproc cluster will be assumed to have driver pools enabled while submitting job
+    boolean driverPoolsEnabled = Boolean.parseBoolean(
+      properties.getOrDefault(DataprocUtils.DRIVER_POOLS_ENABLED, "false"));
+    String driverMemoryMb = properties.getOrDefault(DataprocUtils.DRIVER_MEMORY_MB,
+                                                    DataprocUtils.DRIVER_MEMORY_MB_DEFAULT);
+    String driverVcores = properties.getOrDefault(DataprocUtils.DRIVER_VCORES,
+                                                  DataprocUtils.DRIVER_VCORES_DEFAULT);
+
     return new DataprocConf(accountKey, region, zone, projectId, networkHostProjectID, network, subnet,
                             masterNumNodes, masterCPUs, masterMemoryGB, masterDiskGB,
                             masterDiskType, masterMachineType,
@@ -713,7 +728,8 @@ final class DataprocConf {
                             tokenEndpoint, secureBootEnabled, vTpmEnabled, integrityMonitoringEnabled,
                             clusterReuseEnabled, clusterReuseThresholdMinutes, clusterReuseKey,
                             enablePredefinedAutoScaling, computeReadTimeout, computeConnectionTimeout, rootUrl,
-                            gcsCacheEnabled, disableLocalCaching, troubleshootingDocsURL);
+                            gcsCacheEnabled, disableLocalCaching, troubleshootingDocsURL, driverPoolsEnabled,
+                            driverMemoryMb, driverVcores);
   }
 
   // the UI never sends nulls, it only sends empty strings.

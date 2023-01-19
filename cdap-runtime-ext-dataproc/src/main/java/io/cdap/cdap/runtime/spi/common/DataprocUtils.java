@@ -83,6 +83,13 @@ public final class DataprocUtils {
   // This property needs to be overridden in cdap-site.
   public static final String TROUBLESHOOTING_DOCS_URL_DEFAULT = "";
 
+  // resources required by driver job (default runtime job) running on driver pool node
+  public static final String DRIVER_MEMORY_MB = "driverMemoryMB";
+  public static final String DRIVER_MEMORY_MB_DEFAULT = "2048";
+  public static final String DRIVER_VCORES = "driverVCores";
+  public static final String DRIVER_VCORES_DEFAULT = "2";
+  public static final String DRIVER_POOLS_ENABLED = "driverPoolsEnabled";
+
   /**
    * HTTP Status-Code 429: RESOURCE_EXHAUSTED.
    */

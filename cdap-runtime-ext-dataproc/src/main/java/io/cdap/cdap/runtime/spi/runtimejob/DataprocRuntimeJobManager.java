@@ -686,9 +686,17 @@ public class DataprocRuntimeJobManager implements RuntimeJobManager {
       .setClusterName(clusterName).setProjectId(projectId).setRegion(region).build();
 
     // if the dataproc cluster has driver pools enabled add driver scheduling config
-    if (getClusterControllerClient().getCluster(getClusterRequest).getConfig().getAuxiliaryNodeGroupsCount() > 0) {
+    // skipping the check if user has confirmed driver pools is enabled to prevent quota issues under high load
+    if (Boolean.parseBoolean(provisionerContext.getProperties().getOrDefault(DataprocUtils.DRIVER_POOLS_ENABLED,
+                                                                             "false")) ||
+      (getClusterControllerClient().getCluster(getClusterRequest).getConfig().getAuxiliaryNodeGroupsCount() > 0)) {
       dataprocJobBuilder.setDriverSchedulingConfig(
-        DriverSchedulingConfig.newBuilder().setMemoryMb(2048).setVcores(2).build());
+        DriverSchedulingConfig.newBuilder()
+          .setMemoryMb(Integer.parseInt(provisionerContext.getProperties().getOrDefault(DataprocUtils.DRIVER_MEMORY_MB,
+                                                                           DataprocUtils.DRIVER_MEMORY_MB_DEFAULT)))
+          .setVcores(Integer.parseInt(properties.getOrDefault(DataprocUtils.DRIVER_VCORES,
+                                                                         DataprocUtils.DRIVER_VCORES_DEFAULT)))
+          .build());
     }
 
     return SubmitJobRequest.newBuilder()
