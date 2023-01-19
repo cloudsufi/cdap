@@ -201,7 +201,7 @@ public class DataprocRuntimeJobManager implements RuntimeJobManager {
       CredentialsProvider credentialsProvider = FixedCredentialsProvider.create(credentials);
       this.jobControllerClient = client = JobControllerClient.create(
         JobControllerSettings.newBuilder().setCredentialsProvider(credentialsProvider)
-          .setEndpoint(region + "-" + endpoint).build());
+          .setEndpoint(String.format("%s-%s", region, endpoint)).build());
     }
     return client;
   }
@@ -218,12 +218,11 @@ public class DataprocRuntimeJobManager implements RuntimeJobManager {
         return client;
       }
 
+      // instantiate a dataproc cluster controller client
       CredentialsProvider credentialsProvider = FixedCredentialsProvider.create(credentials);
-      String rootUrl = Optional.ofNullable(endpoint).orElse(ClusterControllerSettings.getDefaultEndpoint());
-      String regionalEndpoint = region + "-" + rootUrl;
       ClusterControllerSettings controllerSettings = ClusterControllerSettings.newBuilder()
         .setCredentialsProvider(credentialsProvider)
-        .setEndpoint(regionalEndpoint)
+        .setEndpoint(String.format("%s-%s", region, endpoint))
         .build();
       this.clusterControllerClient = client = ClusterControllerClient.create(controllerSettings);
     }
@@ -685,11 +684,8 @@ public class DataprocRuntimeJobManager implements RuntimeJobManager {
     GetClusterRequest getClusterRequest = GetClusterRequest.newBuilder()
       .setClusterName(clusterName).setProjectId(projectId).setRegion(region).build();
 
-    // if the dataproc cluster has driver pools enabled add driver scheduling config
-    // skipping the check if user has confirmed driver pools is enabled to prevent quota issues under high load
-    if (Boolean.parseBoolean(provisionerContext.getProperties().getOrDefault(DataprocUtils.DRIVER_POOLS_ENABLED,
-                                                                             "false")) ||
-      (getClusterControllerClient().getCluster(getClusterRequest).getConfig().getAuxiliaryNodeGroupsCount() > 0)) {
+    // if the dataproc cluster has driver pools enabled add the driver scheduling config
+    if (getClusterControllerClient().getCluster(getClusterRequest).getConfig().getAuxiliaryNodeGroupsCount() > 0) {
       dataprocJobBuilder.setDriverSchedulingConfig(
         DriverSchedulingConfig.newBuilder()
           .setMemoryMb(Integer.parseInt(provisionerContext.getProperties().getOrDefault(DataprocUtils.DRIVER_MEMORY_MB,
