@@ -51,3 +51,37 @@ Feature: NameSpaceAdmin - Validate nameSpace admin design time scenarios
     Then Set system preferences with key: "keyValue" and value: "systemPreferences1"
     Then Reset the preferences
     Then Verify the reset is successful for added preferences
+
+  Scenario: To verify the validation error message with invalid cluster name
+    Given Open Datafusion Project to configure pipeline
+    Then Click on the Hamburger bar on the left panel
+    Then Click on NameSpace Admin link from the menu
+    Then Click on create profile button for "default" Namespace
+    Then Select a provisioner: "existingDataProc" for the compute profile
+    Then Enter input plugin property: "profileLabel" with value: "validProfile"
+    Then Enter textarea plugin property: "profileDescription" with value: "validDescription"
+    Then Enter input plugin property: "clusterName" with value: "invalidClusterName"
+    Then Click on: "Create" button in the properties
+    Then Verify that the compute profile is displaying an error message: "errorInvalidClusterName" on the footer
+
+  Scenario:To verify the validation error message with invalid profile name
+    Given Open Datafusion Project to configure pipeline
+    Then Click on the Hamburger bar on the left panel
+    Then Click on NameSpace Admin link from the menu
+    Then Click on create profile button for "default" Namespace
+    Then Select a provisioner: "existingDataProc" for the compute profile
+    Then Enter input plugin property: "profileLabel" with value: "invalidProfile"
+    Then Enter textarea plugin property: "profileDescription" with value: "validDescription"
+    Then Enter input plugin property: "clusterName" with value: "validClusterName"
+    Then Click on: "Create" button in the properties
+    Then Verify that the compute profile is displaying an error message: "errorInvalidProfileName" on the footer
+
+  Scenario:To verify the validation error message with invalid namespace name
+    Given Open Datafusion Project to configure pipeline
+    Then Open "System Admin" menu
+    Then Click on the Configuration link on the System admin page
+    Then Click on Create New Namespace button
+    Then Enter the New Namespace Name with value: "invalidNamespaceName"
+    Then Enter the Namespace Description with value: "validNamespaceDescription"
+    Then Click on: "Finish" button in the properties
+    Then Verify the failed error message: "errorInvalidNamespace" displayed on dialog box
