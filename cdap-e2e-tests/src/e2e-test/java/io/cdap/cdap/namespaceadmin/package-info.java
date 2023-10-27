@@ -15,6 +15,6 @@
  */
 
 /**
- * Package contains the runners for tethering features.
+ * Package contains the runners for system admin features.
  */
-package io.cdap.cdap.namespaceadmin.runners;
+package io.cdap.cdap.namespaceadmin;

@@ -14,24 +14,23 @@
  * the License.
  */
 
-package io.cdap.cdap.namespaceadmin.runners;
+package io.cdap.cdap.namespaceadmin;
 
 import io.cucumber.junit.Cucumber;
 import io.cucumber.junit.CucumberOptions;
 import org.junit.runner.RunWith;
 
 /**
- * Test Runner to execute nameSpace admin related test cases.
+ * Test Runner to execute namespace admin related test cases.
  */
 @RunWith(Cucumber.class)
 @CucumberOptions(
     features = {"src/e2e-test/features"},
     glue = {"io.cdap.cdap.namespaceadmin.stepsdesign", "stepsdesign"},
-    tags = {"@Namespaceadmin"},
+    tags = {"@NameSpaceadmin"},
     plugin = {"pretty", "html:target/cucumber-html-report/namespaceadmin",
         "json:target/cucumber-reports/cucumber-namespaceadmin.json",
         "junit:target/cucumber-reports/cucumber-namespaceadmin.xml"}
 )
 public class TestRunner {
-
 }

@@ -8,7 +8,7 @@ Feature: NameSpaceAdmin - Validate system admin page flow
     Then Click on NameSpace Admin link from the menu
     Then Click "preferences" tab from Configuration page for "default" Namespace
     Then Click on edit namespace preferences to set namespace preferences
-    Then Set system preferences with key: "keyValue" and value: "systemPreferences1"
+    Then Set nameSpace preferences with key: "keyValue" and value: "nameSpacePreferences1"
     Then Click on the Save & Close preferences button
 
   Scenario:Validate user is able to open compute profile page and select a provisioner

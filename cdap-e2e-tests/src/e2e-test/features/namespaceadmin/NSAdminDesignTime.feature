@@ -23,7 +23,7 @@ Feature: NameSpaceAdmin - Validate nameSpace admin design time scenarios
     Then Click on NameSpace Admin link from the menu
     Then Click "preferences" tab from Configuration page for "default" Namespace
     Then Click on edit namespace preferences to set namespace preferences
-    Then Set system preferences with key: "keyValue" and value: "systemPreferences1"
+    Then Set nameSpace preferences with key: "keyValue" and value: "nameSpacePreferences1"
     Then Click on the Save & Close preferences button
     Then Click on edit namespace preferences to set namespace preferences
     Then Delete the preferences
@@ -35,7 +35,7 @@ Feature: NameSpaceAdmin - Validate nameSpace admin design time scenarios
     Then Click on NameSpace Admin link from the menu
     Then Click "preferences" tab from Configuration page for "default" Namespace
     Then Click on edit namespace preferences to set namespace preferences
-    Then Set system preferences with key: "keyValue" and value: "systemPreferences2"
+    Then Set nameSpace preferences with key: "keyValue" and value: "nameSpacePreferences2"
     Then Click on the Save & Close preferences button
     Then Click on edit namespace preferences to set namespace preferences
     Then Delete the preferences
@@ -48,7 +48,7 @@ Feature: NameSpaceAdmin - Validate nameSpace admin design time scenarios
     Then Click on NameSpace Admin link from the menu
     Then Click "preferences" tab from Configuration page for "default" Namespace
     Then Click on edit namespace preferences to set namespace preferences
-    Then Set system preferences with key: "keyValue" and value: "systemPreferences1"
+    Then Set nameSpace preferences with key: "keyValue" and value: "nameSpacePreferences1"
     Then Reset the preferences
     Then Verify the reset is successful for added preferences
 
@@ -78,10 +78,22 @@ Feature: NameSpaceAdmin - Validate nameSpace admin design time scenarios
 
   Scenario:To verify the validation error message with invalid namespace name
     Given Open Datafusion Project to configure pipeline
-    Then Open "System Admin" menu
-    Then Click on the Configuration link on the System admin page
-    Then Click on Create New Namespace button
+    Then Click on the Hamburger bar on the left panel
+    Then Click on Namespace dropdown button
+    Then Click on the Add Namespace tab
     Then Enter the New Namespace Name with value: "invalidNamespaceName"
     Then Enter the Namespace Description with value: "validNamespaceDescription"
     Then Click on: "Finish" button in the properties
     Then Verify the failed error message: "errorInvalidNamespace" displayed on dialog box
+
+  Scenario: Validate user is able to create new namespace from hamburger menu and switch to newly created namespace
+    Given Open Datafusion Project to configure pipeline
+    Then Click on the Hamburger bar on the left panel
+    Then Click on Namespace dropdown button
+    Then Click on the Add Namespace tab
+    Then Enter the New Namespace Name with value: "validNamespaceName"
+    Then Enter the Namespace Description with value: "validNamespaceDescription"
+    Then Click on: "Finish" button in the properties
+    Then Switch to the newly created Namespace
+    Then Click on the Hamburger bar on the left panel
+    Then Verify if the switch is successful by checking the current "validNamespaceName" value
