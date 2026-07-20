@@ -107,13 +107,18 @@ public class DistributedLogFramework extends ResourceBalancerService {
     return new AbstractIdleService() {
       @Override
       protected void startUp() throws Exception {
-        // Starts all pipeline
-        List<Exception> failures = new ArrayList<>();
+        // Trigger asynchronous startup on ALL pipelines in parallel
+        for (Service pipeline : pipelines) {
+          pipeline.startAsync();
+        }
+
+        // Await running state on all pipelines and collect actual causes
+        List<Throwable> failures = new ArrayList<>();
         for (Service pipeline : pipelines) {
           try {
-            pipeline.startAsync().awaitRunning();
-          } catch (Exception e) {
-            failures.add(e);
+            pipeline.awaitRunning();
+          } catch (IllegalStateException e) {
+            failures.add(pipeline.failureCause());
           }
         }
         throwIfNeeded(failures);
@@ -121,25 +126,33 @@ public class DistributedLogFramework extends ResourceBalancerService {
 
       @Override
       protected void shutDown() throws Exception {
-        // Stops all pipeline
-        List<Exception> failures = new ArrayList<>();
+        // Signal ALL pipelines to stop in parallel (non-blocking)
+        for (Service pipeline : pipelines) {
+          pipeline.stopAsync();
+        }
+
+        // Wait for each pipeline to terminate and collect any failures
+        List<Throwable> failures = new ArrayList<>();
         for (Service pipeline : pipelines) {
           try {
-            pipeline.stopAsync().awaitTerminated();
-          } catch (Exception e) {
-            failures.add(e);
+            pipeline.awaitTerminated();
+          } catch (IllegalStateException e) {
+            failures.add(pipeline.failureCause());
           }
         }
         throwIfNeeded(failures);
       }
 
-      private void throwIfNeeded(List<Exception> failures) throws Exception {
+      private void throwIfNeeded(List<Throwable> failures) throws Exception {
         if (!failures.isEmpty()) {
-          Exception first = failures.get(0);
+          Throwable first = failures.get(0);
           for (int i = 1; i < failures.size(); i++) {
             first.addSuppressed(failures.get(i));
           }
-          throw first;
+          if (first instanceof Exception) {
+            throw (Exception) first;
+          }
+          throw new RuntimeException(first);
         }
       }
     };

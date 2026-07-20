@@ -367,7 +367,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
         <configuration>
           <excludes>
             <exclude>*.xml</exclude>
@@ -471,7 +470,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-jar-plugin</artifactId>
-            <version>2.4</version>
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>

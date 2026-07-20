@@ -133,6 +133,7 @@ import io.cdap.cdap.store.StoreDefinition;
 import io.cdap.common.http.HttpRequest;
 import io.cdap.common.http.HttpRequestConfig;
 import io.cdap.common.http.HttpRequests;
+import io.cdap.common.ContentProvider;
 import io.cdap.common.http.HttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -532,7 +533,7 @@ public abstract class AppFabricTestBase {
     if (pluginClassesJson != null) {
       builder.addHeader("Artifact-Plugins", pluginClassesJson);
     }
-    builder.withBody(artifactContents::getInput);
+    builder.withBody((ContentProvider<? extends InputStream>) artifactContents::getInput);
     return HttpRequests.execute(builder.build(), httpRequestConfig);
   }
 
