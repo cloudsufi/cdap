@@ -77,8 +77,9 @@ public class AccessControllerClassLoader extends DirectoryClassLoader {
     return new FilterClassLoader(baseClassLoader, new FilterClassLoader.Filter() {
       @Override
       public boolean acceptResource(String resource) {
-        return defaultFilter.acceptResource(resource) || accessControllerResources.contains(
-            resource);
+        return defaultFilter.acceptResource(resource)
+            || accessControllerResources.contains(resource)
+            || resource.startsWith("io/cdap/cdap/common/FeatureDisabledException");
       }
 
       @Override

@@ -85,17 +85,21 @@ public final class ClassPathResources {
    */
   public static Set<String> getResourcesWithDependencies(ClassLoader classLoader, Class<?> classz)
       throws IOException {
-    ClassPath classPath = getClassPath(classLoader, classz);
+    return getResourcesWithDependencies(classLoader, new Class<?>[] {classz});
+  }
 
-    // Add everything in the classpath as visible resources
-    Set<String> result = classPath.getResources().stream()
-        .map(ResourceInfo::getResourceName)
-        .collect(Collectors.toSet());
-    // Trace dependencies for all classes in the classpath
-    return findClassDependencies(
-        classLoader,
-        classPath.getAllClasses().stream().map(ClassInfo::getName).collect(Collectors.toList()),
-        result);
+  public static Set<String> getResourcesWithDependencies(ClassLoader classLoader, Class<?>... classes)
+      throws IOException {
+    Set<String> result = new HashSet<>();
+    List<String> classNames = new ArrayList<>();
+    for (Class<?> classz : classes) {
+      ClassPath classPath = getClassPath(classLoader, classz);
+      result.addAll(classPath.getResources().stream()
+          .map(ResourceInfo::getResourceName)
+          .collect(Collectors.toSet()));
+      classNames.addAll(classPath.getAllClasses().stream().map(ClassInfo::getName).collect(Collectors.toList()));
+    }
+    return findClassDependencies(classLoader, classNames, result);
   }
 
   /**

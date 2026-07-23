@@ -89,4 +89,18 @@ public interface DatasetTypeService extends Service {
    * Returns details of the specified {@link DatasetTypeId dataset type}.
    */
   DatasetTypeMeta getType(DatasetTypeId datasetTypeId) throws Exception;
+
+  default com.google.common.util.concurrent.Service.State startAndWait() {
+    if (!isRunning()) {
+      startAsync().awaitRunning();
+    }
+    return state();
+  }
+
+  default com.google.common.util.concurrent.Service.State stopAndWait() {
+    if (isRunning()) {
+      stopAsync().awaitTerminated();
+    }
+    return state();
+  }
 }

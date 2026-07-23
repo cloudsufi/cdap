@@ -196,6 +196,7 @@ public class LocalLogAppender extends LogAppender {
         }
         context.getEffectiveLogger(event.getLoggerName()).callAppenders(event);
       }
+      sync(System.currentTimeMillis());
       context.stop();
       addInfo("Log processing pipeline " + getName() + " stopped");
     }

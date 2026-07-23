@@ -72,9 +72,9 @@ public class SqlStructuredTableTest extends StructuredTableTest {
    * populate retry settings in cConf used by {@link SqlStructuredTableRetryTest}
    */
   private static void populateCConf(CConfiguration cConf) {
-    cConf.setInt(Constants.Dataset.DATA_STORAGE_SQL_TRANSACTION_RUNNER_MAX_RETRIES, 2);
-    cConf.setLong(Constants.Dataset.DATA_STORAGE_SQL_TRANSACTION_RUNNER_TRANSACTION_FAILURE_DELAY_MILLIS, 0);
-    cConf.setLong(Constants.Dataset.DATA_STORAGE_SQL_TRANSACTION_RUNNER_CONNECTION_FAILURE_DELAY_MILLIS, 0);
+    cConf.setInt(Constants.Dataset.DATA_STORAGE_SQL_TRANSACTION_RUNNER_MAX_RETRIES, 20);
+    cConf.setLong(Constants.Dataset.DATA_STORAGE_SQL_TRANSACTION_RUNNER_TRANSACTION_FAILURE_DELAY_MILLIS, 10);
+    cConf.setLong(Constants.Dataset.DATA_STORAGE_SQL_TRANSACTION_RUNNER_CONNECTION_FAILURE_DELAY_MILLIS, 10);
   }
 
   @AfterClass
