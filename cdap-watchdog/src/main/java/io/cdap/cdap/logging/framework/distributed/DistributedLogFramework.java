@@ -17,10 +17,7 @@
 package io.cdap.cdap.logging.framework.distributed;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.AbstractIdleService;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -42,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import org.apache.twill.discovery.DiscoveryService;
 import org.apache.twill.discovery.DiscoveryServiceClient;
 import org.apache.twill.kafka.client.BrokerService;
@@ -111,47 +107,55 @@ public class DistributedLogFramework extends ResourceBalancerService {
     return new AbstractIdleService() {
       @Override
       protected void startUp() throws Exception {
-        // Starts all pipeline
-        validateAllFutures(Iterables.transform(pipelines, Service::start));
+        // Trigger asynchronous startup on ALL pipelines in parallel
+        for (Service pipeline : pipelines) {
+          pipeline.startAsync();
+        }
+
+        // Await running state on all pipelines and collect actual causes
+        List<Throwable> failures = new ArrayList<>();
+        for (Service pipeline : pipelines) {
+          try {
+            pipeline.awaitRunning();
+          } catch (IllegalStateException e) {
+            failures.add(pipeline.failureCause());
+          }
+        }
+        throwIfNeeded(failures);
       }
 
       @Override
       protected void shutDown() throws Exception {
-        // Stops all pipeline
-        validateAllFutures(Iterables.transform(pipelines, Service::stop));
+        // Signal ALL pipelines to stop in parallel (non-blocking)
+        for (Service pipeline : pipelines) {
+          pipeline.stopAsync();
+        }
+
+        // Wait for each pipeline to terminate and collect any failures
+        List<Throwable> failures = new ArrayList<>();
+        for (Service pipeline : pipelines) {
+          try {
+            pipeline.awaitTerminated();
+          } catch (IllegalStateException e) {
+            failures.add(pipeline.failureCause());
+          }
+        }
+        throwIfNeeded(failures);
       }
-    };
-  }
 
-  /**
-   * Blocks and validates all the given futures completed successfully.
-   */
-  private void validateAllFutures(Iterable<? extends ListenableFuture<?>> futures)
-      throws Exception {
-    // The get call shouldn't throw exception. It just block until all futures completed.
-    Futures.successfulAsList(futures).get();
-
-    // Iterates all futures to make sure all of them completed successfully
-    Throwable exception = null;
-    for (ListenableFuture<?> future : futures) {
-      try {
-        future.get();
-      } catch (ExecutionException e) {
-        if (exception == null) {
-          exception = e.getCause();
-        } else {
-          exception.addSuppressed(e.getCause());
+      private void throwIfNeeded(List<Throwable> failures) throws Exception {
+        if (!failures.isEmpty()) {
+          Throwable first = failures.get(0);
+          for (int i = 1; i < failures.size(); i++) {
+            first.addSuppressed(failures.get(i));
+          }
+          if (first instanceof Exception) {
+            throw (Exception) first;
+          }
+          throw new RuntimeException(first);
         }
       }
-    }
-
-    // Throw exception if any of the future failed.
-    if (exception != null) {
-      if (exception instanceof Exception) {
-        throw (Exception) exception;
-      }
-      throw new RuntimeException(exception);
-    }
+    };
   }
 
   /**

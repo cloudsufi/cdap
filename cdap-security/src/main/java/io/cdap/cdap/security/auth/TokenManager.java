@@ -16,7 +16,6 @@
 
 package io.cdap.cdap.security.auth;
 
-import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Inject;
 import io.cdap.cdap.common.io.Codec;
@@ -44,13 +43,17 @@ public class TokenManager extends AbstractIdleService {
   @Override
   public void startUp() {
     LOG.info("Starting TokenManager service");
-    this.keyManager.startAndWait();
+    if (!this.keyManager.isRunning()) {
+      this.keyManager.startAsync().awaitRunning();
+    }
   }
 
   @Override
   public void shutDown() {
     LOG.info("Shutting down TokenManager service.");
-    this.keyManager.stopAndWait();
+    if (this.keyManager.isRunning()) {
+      this.keyManager.stopAsync().awaitTerminated();
+    }
   }
 
   /**
@@ -64,7 +67,7 @@ public class TokenManager extends AbstractIdleService {
       KeyManager.DigestId digest = keyManager.generateMAC(identifierCodec.encode(identifier));
       return new AccessToken(identifier, digest.getId(), digest.getDigest());
     } catch (IOException ioe) {
-      throw Throwables.propagate(ioe);
+      throw new RuntimeException(ioe);
     } catch (InvalidKeyException ike) {
       throw new IllegalStateException("Invalid key configured for KeyManager.", ike);
     }
